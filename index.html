@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="en-US">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>微应用说明</title>
+</head>
+<body>
+  <div id="app">
+    <style>
+      body {
+        margin: 0;
+        padding: 20px;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+        background: #f5f5f5;
+      }
+      .container {
+        max-width: 1200px;
+        margin: 0 auto;
+      }
+      h1 {
+        color: #1890ff;
+      }
+      .section {
+        margin: 20px 0;
+        padding: 20px;
+        background: white;
+        border-radius: 8px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      }
+      h2 {
+        margin-top: 0;
+        color: #333;
+      }
+      .demo-area {
+        min-height: 200px;
+        border: 2px dashed #d9d9d9;
+        border-radius: 4px;
+        padding: 20px;
+      }
+    </style>
+    
+    <div class="container">
+      <h1>🎨 Sun-Panel 微应用 - 开发说明</h1>
+
+      <div class="section" style="padding: 10px 20px; background: #e6f7ff; border: 1px solid #91d5ff;">
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <strong>📄 入口 JS 文件地址：</strong>
+          <code id="js-url" style="flex: 1; word-break: break-all; color: #1890ff;"></code>
+          <button id="copy-btn" style="padding: 5px 12px; background: #1890ff; color: white; border: none; border-radius: 4px; cursor: pointer; white-space: nowrap;">复制</button>
+        </div>
+      </div>
+
+      <div class="section">
+        <h2>📋 联合 Sun-Panel 项目调试说明</h2>
+        <div style="background: #fffbe6; padding: 15px; border-radius: 4px; border-left: 4px solid #faad14;">
+          <h3 style="margin-top: 0; color: #d46b08;">导入微应用步骤：</h3>
+          <ol style="line-height: 1.8; margin-bottom: 15px;">
+            <li>点击上方<strong>复制</strong>按钮复制入口 JS 文件地址</li>
+            <li>前往 <strong>Sun-Panel v2</strong> 版本</li>
+            <li>在右上角 <strong>[应用启动器]</strong> 中找到 <strong>[微应用管理]</strong> 点击 <strong>[导入开发版微应用]</strong></li>
+            <li>在地址栏粘贴地址并确定，导入成功后刷新页面</li>
+            <li>在分组标题中找到并点击 <strong>添加小部件图标</strong> 即可看到已经安装微应用的小部件</li>
+
+          </ol>
+          <h3 style="margin-top: 20px; color: #d46b08;">更新说明：</h3>
+          <ul style="line-height: 1.8;">
+            <li>✅ <strong>组件代码修改</strong>：只需刷新浏览器页面即可</li>
+            <li>⚠️ <strong>配置文件修改</strong>：需要重新导入（重复上述导入步骤）</li>
+            <li>⚠️ <strong>app.config.js 修改</strong>：需要重新导入</li>
+            <li>⚠️ <strong>components.config.js 修改</strong>：需要重新导入</li>
+          </ul>
+          <h3 style="margin-top: 20px; color: #d46b08;">开发说明：</h3>
+          <ul style="line-height: 1.8;">
+            <li>微应用开发其实并不复杂，使用 `Hello World` 示例按照以上方式走一遍，就可以轻松上手了。</li>
+            <li>如果你正在开发微应用，可以加作者微信：95302870，备注：微应用，作者拉你进入微应用开发群，大家一起交流学习</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="section">
+        <h2>📦 MicroAppPackage 对象</h2>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+          <span style="color: #666; font-size: 14px;">动态从 main.js 导入并显示完整的 microAppPackage 对象</span>
+          <button id="refresh-btn" style="padding: 5px 12px; background: #52c41a; color: white; border: none; border-radius: 4px; cursor: pointer;">刷新</button>
+        </div>
+        <pre id="microapp-package" style="background: #f6f8fa; padding: 15px; border-radius: 4px; overflow: auto; font-size: 12px; line-height: 1.5; max-height: 500px;">加载中...</pre>
+      </div>
+      <div class="section">
+        以下组件预览，暂不能获取到真实的上下文数据和API，只能查看UI效果，若使用 API 请在 Sun-Panel 项目中联调查看
+      </div>
+
+      <div class="section">
+        <h2>📱 页面组件</h2>
+        <div class="demo-area" id="page-demo"></div>
+      </div>
+      
+      <div class="section">
+        <h2>🎯 小部件组件</h2>
+        <div class="demo-area" id="widget-demo"></div>
+      </div>
+      
+      <!-- <div class="section">
+        <h2>⚙️ 配置页面</h2>
+        <div class="demo-area" id="config-demo">
+
+          <sun-card-config></sun-card-config>
+        </div>
+      </div> -->
+    </div>
+  </div>
+
+  <script>
+    // 动态设置 JS 文件的完整 URL
+    (function() {
+      const protocol = window.location.protocol;
+      const hostname = window.location.hostname;
+      const port = window.location.port ? ':' + window.location.port : '';
+      const jsPath = '/src/main.js';
+      const fullUrl = protocol + '//' + hostname + port + jsPath;
+      document.getElementById('js-url').textContent = fullUrl;
+
+      // 复制功能
+      const copyBtn = document.getElementById('copy-btn');
+      copyBtn.addEventListener('click', async function() {
+        try {
+          await navigator.clipboard.writeText(fullUrl);
+          copyBtn.textContent = '已复制!';
+          copyBtn.style.background = '#52c41a';
+          setTimeout(() => {
+            copyBtn.textContent = '复制';
+            copyBtn.style.background = '#1890ff';
+          }, 2000);
+        } catch (err) {
+          // 降级方案
+          const textarea = document.createElement('textarea');
+          textarea.value = fullUrl;
+          textarea.style.position = 'fixed';
+          textarea.style.opacity = '0';
+          document.body.appendChild(textarea);
+          textarea.select();
+          try {
+            document.execCommand('copy');
+            copyBtn.textContent = '已复制!';
+            copyBtn.style.background = '#52c41a';
+            setTimeout(() => {
+              copyBtn.textContent = '复制';
+              copyBtn.style.background = '#1890ff';
+            }, 2000);
+          } catch (e) {
+            copyBtn.textContent = '复制失败';
+            copyBtn.style.background = '#ff4d4f';
+            setTimeout(() => {
+              copyBtn.textContent = '复制';
+              copyBtn.style.background = '#1890ff';
+            }, 2000);
+          }
+          document.body.removeChild(textarea);
+        }
+      });
+    })();
+
+    // 动态导入并显示 microAppPackage 对象，并注册组件
+    async function loadMicroAppPackage() {
+      const packagePre = document.getElementById('microapp-package');
+      try {
+        const module = await import('./src/main.js');
+        const microAppPackage = module.default;
+        packagePre.textContent = JSON.stringify(microAppPackage, null, 2);
+
+        // 注册并创建组件
+        await registerAndCreateComponents(microAppPackage);
+      } catch (error) {
+        packagePre.textContent = '加载失败: ' + error.message;
+        packagePre.style.color = '#ff4d4f';
+      }
+    }
+
+    // 动态注册组件并创建 HTML 标签
+    async function registerAndCreateComponents(microAppPackage) {
+      const { components } = microAppPackage;
+      const { pages, widgets } = components;
+
+      // 创建模拟的 spCtx
+      const mockSpCtx = {
+        api: {
+          showToast: (msg) => console.log('Toast:', msg),
+          openWindow: (opts) => console.log('Open window:', opts),
+        },
+        darkMode: false,
+        language: 'en-US',
+        networkMode: 'wan',
+        staticPath: '/',
+        role: 0,
+      };
+
+      // 注册页面组件
+      if (pages) {
+        const pageDemo = document.getElementById('page-demo');
+        for (const [name, config] of Object.entries(pages)) {
+          // 创建唯一的自定义元素名
+          const tagName = `demo-page-${name.toLowerCase()}`;
+          if (!customElements.get(tagName)) {
+            customElements.define(tagName, config.component);
+          }
+
+          // 创建页面元素
+          const pageElement = document.createElement(tagName);
+          // 准备完整的 spCtx 数据
+          pageElement.spCtx = {
+            ...mockSpCtx,
+            background: config.background || '#ffffff',
+            widgetInfo: {
+              widgetId: name,
+              config: {},
+              gridSize: '1x1',
+              title: name,
+            },
+            customParam: {},
+          };
+
+          // 添加标签名显示
+          const label = document.createElement('div');
+          label.style.cssText = 'color: #666; font-size: 12px; margin-bottom: 5px;';
+          label.textContent = `<${tagName}>`;
+          pageDemo.appendChild(label);
+
+          // 添加元素
+          pageDemo.appendChild(pageElement);
+        }
+      }
+
+      // 注册小部件组件
+      if (widgets) {
+        const widgetDemo = document.getElementById('widget-demo');
+        for (const [name, config] of Object.entries(widgets)) {
+          // 创建唯一的自定义元素名
+          const tagName = `demo-widget-${name.toLowerCase()}`;
+          if (!customElements.get(tagName)) {
+            customElements.define(tagName, config.component);
+          }
+
+          // 创建小部件元素
+          const widgetElement = document.createElement(tagName);
+          // 准备完整的 spCtx 数据
+          widgetElement.spCtx = {
+            ...mockSpCtx,
+            widgetInfo: {
+              widgetId: name,
+              config: {},
+              gridSize: config.size[0] || '1x1',
+              title: name,
+              background: config.background || '',
+            },
+          };
+
+          // 添加标签名显示
+          const label = document.createElement('div');
+          label.style.cssText = 'color: #666; font-size: 12px; margin-bottom: 5px;';
+          label.textContent = `<${tagName}>`;
+          widgetDemo.appendChild(label);
+
+          // 添加元素容器（设置尺寸）
+          const container = document.createElement('div');
+          const size = config.size[0];
+          const sizeMap = {
+            '1x1': { width: '100px', height: '100px' },
+            '1x2': { width: '100px', height: '200px' },
+            '1xfull': { width: '100%', height: '200px' },
+            '2x1': { width: '200px', height: '100px' },
+            '2x2': { width: '200px', height: '200px' },
+            '2x4': { width: '400px', height: '200px' },
+          };
+          const sizeConfig = sizeMap[size] || sizeMap['1x1'];
+          container.style.cssText = `
+            border: 1px solid #d9d9d9;
+            border-radius: 4px;
+            overflow: hidden;
+            width: ${sizeConfig.width};
+            height: ${sizeConfig.height};
+            display: inline-block;
+            margin: 5px;
+          `;
+          container.appendChild(widgetElement);
+          widgetDemo.appendChild(container);
+        }
+      }
+    }
+
+    // 页面加载后执行
+    window.addEventListener('load', function() {
+      loadMicroAppPackage();
+    });
+
+    // 刷新按钮
+    const refreshBtn = document.getElementById('refresh-btn');
+    refreshBtn.addEventListener('click', function() {
+      const packagePre = document.getElementById('microapp-package');
+      packagePre.textContent = '加载中...';
+      loadMicroAppPackage();
+    });
+  </script>
+
+  <script type="module" src="./src/main.js"></script>
+
+</body>
+</html>

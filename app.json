@@ -1,0 +1,62 @@
+{
+  "appJsonVersion": "1.1",
+  "author": "cheering",
+  "version": "1.4.1",
+  "entry": "main.js",
+  "icon": "icon.png",
+  "debug": false,
+  "appInfo": {
+    "appName": "$t:APP_NAME",
+    "description": "$t:APP_DESCRIPTION",
+    "networkDescription": "$t:NETWORK_DESCRIPTION"
+  },
+  "locales": {
+    "zh-CN": "zh-CN.json",
+    "en-US": "en-US.json"
+  },
+  "defaultLocale": "zh-CN",
+  "permissions": [
+    "network",
+    "dataNode"
+  ],
+  "networkDomains": [
+    "*",
+    "127.0.0.1",
+    "127.0.0.1:8848",
+    "localhost:8848",
+    "api.mcstatus.io"
+  ],
+  "dataNodes": {
+    "mcserver": {
+      "scope": "user",
+      "isPublic": false
+    }
+  },
+  "microAppId": "cheering-mcserver-card",
+  "apiVersion": "1.0.19",
+  "components": {
+    "pages": {
+      "mcserver-config": {
+        "background": "#1a1a1a",
+        "backgroundDark": "#141414",
+        "headerTextColor": "#55ff55",
+        "headerTextColorDark": "#55ff55"
+      }
+    },
+    "widgets": {
+      "mcserver-card": {
+        "configComponentName": "mcserver-config",
+        "size": [
+          "1xfull",
+          "2x4",
+          "2x2",
+          "1x2"
+        ],
+        "background": "",
+        "widgetName": "$t:WIDGET_NAME",
+        "widgetDescription": "$t:WIDGET_DESCRIPTION",
+        "sort": 10
+      }
+    }
+  }
+}

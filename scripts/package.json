@@ -1,0 +1,20 @@
+{
+  "name": "microapp-template-updater",
+  "version": "1.1",
+  "description": "Micro application template update tool",
+  "type": "module",
+  "bin": {
+    "update-microapp-template": "./update-template.mjs"
+  },
+  "keywords": [
+    "microapp",
+    "template",
+    "updater",
+    "sun-panel"
+  ],
+  "author": "Sun Panel",
+  "license": "MIT",
+  "engines": {
+    "node": ">=14.0.0"
+  }
+}
