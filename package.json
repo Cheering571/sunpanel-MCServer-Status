@@ -1,6 +1,6 @@
 {
-  "name": "sunpanel-mcserver-card",
-  "version": "1.4.1",
+  "name": "sunpanel-MCServer-Status",
+  "version": "1.5.0",
   "templateName": "microapp-template",
   "templateVersion": "1.1.2",
   "type": "module",

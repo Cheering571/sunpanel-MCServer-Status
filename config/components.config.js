@@ -25,7 +25,7 @@ export default {
   // 小部件（卡片）注册
   // =======================
   widgets: {
-    'mcserver-card': {
+    'MCServer-Status': {
       component: McCard,
       configComponentName: 'mcserver-config',
       // 只保留这四种：整行 / 宽条 / 方形 / 超宽

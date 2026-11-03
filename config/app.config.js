@@ -45,8 +45,8 @@ export default {
   // =======================
   appJsonVersion: '1.1',
   author: 'cheering',
-  microAppId: 'cheering-mcserver-card',
-  version: '1.4.1',
+  microAppId: 'cheering-MCServer-Status',
+  version: '1.5.0',
   entry: 'main.js',
   icon: 'icon.png',
   debug: false,
