@@ -298,6 +298,50 @@ _fitText() {
 
 ---
 
+---
+
+## 发布（网络受限时）
+
+正常情况下 `git push` 就行。但有些网络环境下 `github.com:443` 会被阻断：
+
+```
+fatal: unable to access 'https://github.com/...':
+Recv failure: Connection was reset
+```
+
+而 `api.github.com`、`uploads.github.com` 通常是通的，所以项目里带了一个走 API 的发布脚本：
+
+```bash
+# 只提交源码
+python tools/push_via_api.py
+
+# 提交源码 + 建 Release（自动带上安装包）
+python tools/push_via_api.py --release
+
+# 只建 Release，不动源码
+python tools/push_via_api.py --only-release
+```
+
+它做的事：
+
+1. 用 Git Data API 提交改动文件（`blobs → tree → commit → ref`）
+2. 在远端打 tag 并创建 Release，附上 `packages/` 下的安装包
+3. Release 已存在时改为覆盖资产，不会报错
+
+| 参数 | 说明 |
+|---|---|
+| （无） | 只提交源码 |
+| `--release` | 提交源码 + 建 Release |
+| `--only-release` | 只建 Release |
+| `--tag v1.5.3` | 指定标签，默认 `v<version>` |
+| `--zip path/to.zip` | 指定安装包 |
+| `--title` | Release 标题 |
+| `--notes-file` | Release 说明文件 |
+
+版本号和包名自动从 `config/app.config.js` 读取，不用手填。
+
+---
+
 ## 致谢
 
 卡片视觉参考 [astrbot_plugin_just_enough_mcserver_status](https://github.com/NightVoyager14/astrbot_plugin_just_enough_mcserver_status) 的服务器列表样式。
