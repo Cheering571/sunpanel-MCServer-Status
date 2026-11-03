@@ -20,17 +20,24 @@ export const K = {
   lastAddress: 'lastAddress',
   /** 自动刷新间隔（毫秒），0 表示关闭自动刷新 */
   refreshMs: 'refreshMs',
+  /** 数据源：auto | public | bridge */
+  source: 'source',
 };
 
 /**
  * 默认数据源
- *   public : 公共 API（mcstatus.io），免部署，开箱即用
- *   bridge : 本机桥接服务，支持局域网地址
  *
- * 默认走 public —— 装完微应用不需要额外部署任何东西。
- * 需要查局域网服务器时，在配置页切到 bridge 并部署 bridge/bridge.py。
+ *   auto   : 智能选择（默认）
+ *            内网地址 → 直接走桥接
+ *            公网地址 → 先公共 API，失败自动降级到桥接
+ *   public : 只走公共 API（mcstatus.io），免部署
+ *   bridge : 只走本机桥接服务，支持局域网，数据自己掌控
+ *
+ * 为什么默认 auto：公共 API 是第三方在公网探测，
+ * 遇到 FRP 映射、防火墙白名单、刚启动的服务器都可能探测失败，
+ * 这种情况自动退回本地桥接，用户体验最好。
  */
-export const DEFAULT_SOURCE = 'public';
+export const DEFAULT_SOURCE = 'auto';
 
 /**
  * 示例桥接地址
@@ -65,9 +72,6 @@ export function suggestBridgeUrl() {
   return SAMPLE_BRIDGE;
 }
 
-/** 兼容旧引用 */
-export const DEFAULT_BRIDGE = DEFAULT_SOURCE;
-
 /** 默认 MC 端口 */
 export const DEFAULT_PORT = 25565;
 
@@ -77,8 +81,9 @@ export const DEFAULT_PORT = 25565;
  *   public : 第三方公共 API（mcstatus.io），免部署，但只能查公网地址
  * ============================================================ */
 export const SOURCES = [
-  { key: 'bridge', label: '桥接服务（支持局域网）' },
+  { key: 'auto', label: '自动（推荐：先公共 API，失败切桥接）' },
   { key: 'public', label: '公共 API（免部署，仅公网）' },
+  { key: 'bridge', label: '桥接服务（支持局域网，最可靠）' },
 ];
 
 /** 公共 API 基址 */
@@ -152,9 +157,9 @@ export function formatAddress(host, port) {
   return `${h}:${port}`;
 }
 
-/** 规范化桥接服务地址（去掉尾部斜杠） */
+/** 规范化桥接服务地址（去掉尾部斜杠，空值回退到推断值） */
 export function normalizeBridge(url) {
-  const v = String(url || '').trim() || DEFAULT_BRIDGE;
+  const v = String(url || '').trim() || suggestBridgeUrl();
   return v.replace(/\/+$/, '');
 }
 
@@ -186,15 +191,35 @@ export async function loadConfig(api) {
       ? rawRefresh
       : DEFAULT_REFRESH_MS;
 
+    // ---- 数据源 ----
+    let source = data?.[K.source];
+    let bridgeUrl = data?.[K.bridgeUrl];
+
+    // 兼容旧配置：bridgeUrl 存过 'public' 表示走公共 API
+    if (!source) {
+      if (bridgeUrl === 'public') {
+        source = 'public';
+        bridgeUrl = '';
+      } else if (bridgeUrl) {
+        source = 'bridge';
+      } else {
+        source = DEFAULT_SOURCE;
+      }
+    }
+    if (!SOURCES.some((o) => o.key === source)) source = DEFAULT_SOURCE;
+    if (!bridgeUrl || bridgeUrl === 'public') bridgeUrl = suggestBridgeUrl();
+
     return {
-      bridgeUrl: data?.[K.bridgeUrl] || DEFAULT_SOURCE,
+      source,
+      bridgeUrl,
       servers,
       lastAddress: data?.[K.lastAddress] || '',
       refreshMs,
     };
   } catch (e) {
     return {
-      bridgeUrl: DEFAULT_SOURCE,
+      source: DEFAULT_SOURCE,
+      bridgeUrl: suggestBridgeUrl(),
       servers: {},
       lastAddress: '',
       refreshMs: DEFAULT_REFRESH_MS,
@@ -245,14 +270,49 @@ export async function setWidgetServer(api, widgetId, address) {
  * 写成 { url } 会被后端校验拦下，报
  *   "Field validation for 'TargetURL' failed on the 'required' tag"
  */
-export async function fetchStatus(api, bridgeUrl, host, port) {
+export async function fetchStatus(api, source, bridgeUrl, host, port) {
+  const src = source || DEFAULT_SOURCE;
   const base = normalizeBridge(bridgeUrl);
 
-  // 数据源为「公共 API」时（bridgeUrl 传 'public'）直接走第三方
-  if (base === 'public') {
+  // 只走公共 API
+  if (src === 'public') {
     return fetchFromPublicApi(api, host, port);
   }
 
+  // 只走桥接
+  if (src === 'bridge') {
+    return fetchViaBridge(api, base, host, port);
+  }
+
+  // auto：内网地址第三方 API 进不来，直接走桥接
+  if (isPrivateHost(host)) {
+    return fetchViaBridge(api, base, host, port);
+  }
+
+  // auto：公网地址先试公共 API，失败再退回桥接
+  try {
+    return await fetchFromPublicApi(api, host, port);
+  } catch (e1) {
+    try {
+      return await fetchViaBridge(api, base, host, port);
+    } catch (e2) {
+      throw new Error(
+        `公共 API 和桥接服务都查不到 ${host}。` +
+          `公共 API：${e1.message}；桥接服务：${e2.message}`
+      );
+    }
+  }
+}
+
+/**
+ * 通过本地桥接服务查询
+ *
+ * 平台 API 的正确写法（见 SDK 的 RequestOptions 类型）：
+ *   api.network.request({ request: { targetUrl, method, headers, body } })
+ * 注意字段是 targetUrl，不是 url；也不支持 timeout。
+ */
+export async function fetchViaBridge(api, bridgeUrl, host, port) {
+  const base = normalizeBridge(bridgeUrl);
   // 没给端口时不传 port 参数，让桥接服务去查 SRV 记录
   const qs = `host=${encodeURIComponent(host)}`;
   const targetUrl = port
@@ -269,7 +329,7 @@ export async function fetchStatus(api, bridgeUrl, host, port) {
       },
     });
   } catch (e) {
-    throw new Error(`请求桥接服务失败：${e?.message || e}`);
+    throw new Error(`请求桥接服务失败（${base}）：${e?.message || e}`);
   }
 
   const payload = unwrapResponse(res);
@@ -318,7 +378,11 @@ export async function fetchFromPublicApi(api, host, port) {
     throw new Error('公共 API 返回内容无法解析');
   }
   if (d.online === false) {
-    throw new Error('服务器离线或不可达（公共 API 探测失败）');
+    throw new Error(
+      '公共 API 探测不到该服务器（第三方在公网 ping 失败，'
+      + '常见于 FRP 映射、防火墙白名单、刚启动的服务器）。'
+      + '请到配置页把数据源改成「桥接服务」后重试。'
+    );
   }
 
   const ver = d.version || {};

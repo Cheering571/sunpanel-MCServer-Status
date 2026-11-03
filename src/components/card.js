@@ -8,8 +8,6 @@ import {
   parseAddress,
   formatAddress,
   motdToText,
-  normalizeBridge,
-  DEFAULT_BRIDGE,
 } from '../api/bridge.js';
 import { ensureFontFaces } from '../styles/fonts.js';
 
@@ -221,8 +219,13 @@ export class McCard extends SunPanelWidgetElement {
       this.requestUpdate();
     }
     try {
-      const bridge = normalizeBridge(this._cfg?.bridgeUrl || DEFAULT_BRIDGE);
-      const data = await fetchStatus(api, bridge, parsed.host, parsed.port);
+      const data = await fetchStatus(
+        api,
+        this._cfg?.source,
+        this._cfg?.bridgeUrl,
+        parsed.host,
+        parsed.port
+      );
       this.status = data;
       this.error = '';
       this.updatedAt = formatNow();

@@ -5,7 +5,7 @@ import {
   saveConfig,
   normalizeBridge,
   unwrapResponse,
-  DEFAULT_BRIDGE,
+  DEFAULT_SOURCE,
   DEFAULT_REFRESH_MS,
   REFRESH_OPTIONS,
   SOURCES,
@@ -25,6 +25,7 @@ import { ensureFontFaces } from '../styles/fonts.js';
 export class McCardConfig extends SunPanelPageElement {
   static properties = {
     spCtx: { type: Object, attribute: false },
+    source: { type: String, state: true },
     bridgeUrl: { type: String, state: true },
     refreshMs: { type: Number, state: true },
     connState: { type: String, state: true },
@@ -34,7 +35,8 @@ export class McCardConfig extends SunPanelPageElement {
 
   constructor() {
     super();
-    this.bridgeUrl = DEFAULT_BRIDGE;
+    this.source = DEFAULT_SOURCE;
+    this.bridgeUrl = suggestBridgeUrl();
     this.refreshMs = DEFAULT_REFRESH_MS;
     this._lastBridge = suggestBridgeUrl();
     this.connState = 'idle';
@@ -47,8 +49,9 @@ export class McCardConfig extends SunPanelPageElement {
     ensureFontFaces(this.spCtx?.staticPath);
     try {
       const cfg = await loadConfig(api);
-      this.bridgeUrl = cfg.bridgeUrl || DEFAULT_BRIDGE;
-      if (this.bridgeUrl !== 'public') this._lastBridge = this.bridgeUrl;
+      this.source = cfg.source || DEFAULT_SOURCE;
+      this.bridgeUrl = cfg.bridgeUrl || suggestBridgeUrl();
+      this._lastBridge = this.bridgeUrl;
       this.refreshMs = cfg.refreshMs ?? DEFAULT_REFRESH_MS;
     } catch (e) {
       /* 保留默认值 */
@@ -56,14 +59,13 @@ export class McCardConfig extends SunPanelPageElement {
     this.requestUpdate();
   }
 
-  /** 当前数据源：bridge | public */
+  /** 当前数据源：auto | public | bridge */
   getSource() {
-    return this.bridgeUrl === 'public' ? 'public' : 'bridge';
+    return this.source || DEFAULT_SOURCE;
   }
 
   _onSourceChange(e) {
-    const v = e.target.value;
-    this.bridgeUrl = v === 'public' ? 'public' : this._lastBridge || suggestBridgeUrl();
+    this.source = e.target.value;
     this.connState = 'idle';
     this.connMsg = '';
     this.requestUpdate();
@@ -71,7 +73,7 @@ export class McCardConfig extends SunPanelPageElement {
 
   _onInput(e) {
     this.bridgeUrl = e.target.value;
-    if (e.target.value !== 'public') this._lastBridge = e.target.value;
+    this._lastBridge = e.target.value;
     this.connState = 'idle';
     this.connMsg = '';
   }
@@ -110,6 +112,7 @@ export class McCardConfig extends SunPanelPageElement {
     this.requestUpdate();
     try {
       await saveConfig(api, {
+        [K.source]: this.getSource(),
         [K.bridgeUrl]: normalizeBridge(this.bridgeUrl),
         [K.refreshMs]: this.refreshMs,
       });
@@ -164,8 +167,24 @@ export class McCardConfig extends SunPanelPageElement {
               )}
             </select>
 
-            ${this.getSource() === 'bridge'
+            ${this.getSource() === 'public'
               ? html`
+                  <p class="desc warn">
+                    公共 API 由第三方（mcstatus.io）在公网探测，<b>只能查询公网可达的服务器</b>。<br />
+                    内网地址（<code>192.168.x.x</code>）、FRP 映射、刚启动的服务器都可能探测失败。
+                  </p>
+                  <div class="row">
+                    <button class="btn primary" ?disabled=${this.saving} @click=${this.handleSave}>
+                      保存
+                    </button>
+                  </div>
+                  ${this.connMsg
+                    ? html`<div class="status" style="color:${s.color}">
+                        ${s.icon} ${this.connMsg}
+                      </div>`
+                    : ''}
+                `
+              : html`
                   <label style="margin-top:12px">桥接服务地址</label>
                   <input
                     class="input"
@@ -174,6 +193,20 @@ export class McCardConfig extends SunPanelPageElement {
                     @input=${this._onInput}
                     placeholder="http://192.168.1.100:8848"
                   />
+                  ${this.getSource() === 'auto'
+                    ? html`
+                        <p class="desc" style="margin-top:10px">
+                          自动模式：<b>内网地址</b>直接走桥接；<b>公网地址</b>先试公共 API，
+                          探测失败自动回退到桥接。公共 API 查不到的服务器（FRP 映射、刚启动等）
+                          会由桥接兜底。
+                        </p>
+                      `
+                    : html`
+                        <p class="desc" style="margin-top:10px">
+                          桥接服务跑在你自己机器上，支持局域网地址，延迟数据真实。
+                          没部署过的话，点下面的「部署桥接服务」下载安装包。
+                        </p>
+                      `}
                   <div class="row">
                     <button
                       class="btn"
@@ -189,24 +222,6 @@ export class McCardConfig extends SunPanelPageElement {
                   <div class="status" style="color:${s.color}">
                     ${this.connMsg ? `${s.icon} ${this.connMsg}` : ''}
                   </div>
-                `
-              : html`
-                  <p class="desc warn">
-                    这是默认数据源，装完就能用。公共 API 由第三方（mcstatus.io）在公网探测，所以
-                    <b>只能查询公网可达的服务器</b>。<br />
-                    像 <code>192.168.1.10</code> 这种内网地址它进不来，
-                    会直接报错 —— 要查局域网服务器请改用桥接服务。
-                  </p>
-                  <div class="row">
-                    <button class="btn primary" ?disabled=${this.saving} @click=${this.handleSave}>
-                      保存
-                    </button>
-                  </div>
-                  ${this.connMsg
-                    ? html`<div class="status" style="color:${s.color}">
-                        ${s.icon} ${this.connMsg}
-                      </div>`
-                    : ''}
                 `}
           </section>
 
