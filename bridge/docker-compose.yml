@@ -1,0 +1,19 @@
+# 一键部署：docker compose up -d
+#
+# 镜像启动后监听宿主机 8848 端口，
+# 微应用配置页里的「服务地址」填 http://<这台机器的IP>:8848
+
+services:
+  mcserver-bridge:
+    build: .
+    image: mcserver-bridge:latest
+    container_name: mcserver-bridge
+    ports:
+      - "8848:8848"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python3", "-c", "import urllib.request;urllib.request.urlopen('http://127.0.0.1:8848/health',timeout=3)"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 5s

@@ -1,0 +1,36 @@
+# 依赖与构建产物
+node_modules/
+dist/
+.build/
+
+# 安装包（通过 Release 分发，不进仓库）
+packages/
+*.zip
+# 但桥接服务的部署包要进仓库，配置页的下载按钮依赖它
+!public/bridge.zip
+
+# ------------------------------------------------------------------
+# 字体文件不纳入版本控制
+#
+# public/fonts/*.ttf 是第三方字体，版权各自归属：
+#   - Mojangles 属于 Mojang（Minecraft 官方字体）
+#   - Unifont 属于 GNU 项目（GPL v2 + font embedding exception）
+# 为避免再分发争议，仓库只保留子集化脚本，
+# 自行放入 public/fonts/ 后运行 tools/subset-fonts.py 生成。
+# 缺字体时构建仍可成功，界面会回退到系统等宽字体。
+# ------------------------------------------------------------------
+public/fonts/*.ttf
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# 编辑器与系统
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+*.swp
+*.log

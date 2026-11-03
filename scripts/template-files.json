@@ -1,0 +1,63 @@
+{
+  "name": "template-files",
+  "version": "1.1.0",
+  "description": "需要从模板同步到衍生项目的文件列表",
+  "repo": {
+    "url": "https://github.com/Sun-Panel/microapp-hello-world.git",
+    "branch": "main"
+  },
+  "files": [
+    {
+      "path": "vite.config.js",
+      "description": "Vite 配置文件，包含构建插件和配置"
+    },
+    {
+      "path": "build/**",
+      "description": "构建相关脚本（支持通配符，自动同步新增文件）",
+      "glob": true
+    },
+    {
+      "path": "eslint.config.js",
+      "description": "ESLint 配置文件"
+    },
+    {
+      "path": "package.json",
+      "description": "项目配置文件（注意：依赖版本可能会更新）",
+      "mergeStrategy": "shallow",
+      "skipFields": ["name", "version", "description"]
+    },
+    {
+      "path": "jsconfig.json",
+      "description": "JavaScript 配置文件"
+    },
+    {
+      "path": "scripts/**",
+      "description": "更新脚本和配置（支持通配符，自动同步新增文件）",
+      "glob": true
+    },
+    {
+      "path": "src/main.js",
+      "description": "微应用入口文件，包含 SDK 初始化逻辑",
+      "overwriteIfUnchanged": true
+    },
+    {
+      "path": "src/vite-env.d.ts",
+      "description": "Vite 类型声明文件",
+      "overwriteIfUnchanged": true
+    }
+  ],
+  "cleanup": [],
+  "exclude": [
+    "src/!(main.js|vite-env.d.ts)",
+    "config/**",
+    "app.json",
+    "public/**",
+    "locales/**",
+    "dist/**",
+    "node_modules/**",
+    ".git/**",
+    "*.md",
+    "*.code-workspace",
+    "*.lock"
+  ]
+}
