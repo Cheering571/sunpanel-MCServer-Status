@@ -1,7 +1,7 @@
 {
   "appJsonVersion": "1.1",
   "author": "cheering",
-  "version": "1.5.0",
+  "version": "1.5.1",
   "entry": "main.js",
   "icon": "icon.png",
   "debug": false,
@@ -32,7 +32,7 @@
       "isPublic": false
     }
   },
-  "microAppId": "cheering-MCServer-Status",
+  "microAppId": "cheering-mcserver-status",
   "apiVersion": "1.0.19",
   "components": {
     "pages": {
@@ -44,7 +44,7 @@
       }
     },
     "widgets": {
-      "MCServer-Status": {
+      "mcserver-status": {
         "configComponentName": "mcserver-config",
         "size": [
           "1xfull",

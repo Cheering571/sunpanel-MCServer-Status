@@ -37,7 +37,7 @@
 
 ### 1. 安装
 
-把 `packages/cheering-MCServer-Status-*.zip` 传到 Sun-Panel 的微应用管理页安装。
+把 `packages/cheering-mcserver-status-*.zip` 传到 Sun-Panel 的微应用管理页安装。
 
 ### 2. 添加卡片
 
